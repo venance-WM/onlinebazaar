@@ -1,7 +1,5 @@
-deployment:
-  tasks:
-    - export DEPLOYMENT_BRANCH=main
-    - /bin/bash /home/$USER/$APP_PATH/artisan migrate --force
-    - /bin/bash /home/$USER/$APP_PATH/artisan config:cache
-    - /bin/bash /home/$USER/$APP_PATH/artisan route:cache
-    - /bin/bash /home/$USER/$APP_PATH/artisan view:cache
+---
+  deployment:
+    tasks:
+      - export DEPLOYPATH=/home/example/public_html/
+      - /bin/cp -R images $DEPLOYPATH
