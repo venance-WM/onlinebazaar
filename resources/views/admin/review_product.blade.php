@@ -27,7 +27,7 @@
                 </div>
                 <div class="col-md-4 text-end">
                     <p class="text-center"><strong>Image:</strong></p>
-                    <img src="{{ asset('storage/'.$productData['image']) }}" alt="{{ $productData['name'] }}" class="img-fluid rounded">
+                    <img src="{{ asset('images/products/'.$productData['image']) }}" alt="{{ $productData['name'] }}" class="img-fluid rounded">
                 </div>
             </div>
         </div>

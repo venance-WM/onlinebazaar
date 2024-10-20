@@ -178,7 +178,7 @@
                                                 <td>
                                                     <img class="rounded-circle"
                                                         style="width: 75px; height: 75px; object-fit: cover;"
-                                                        src="{{ asset('storage/' . $wishlist->product->image) }}"
+                                                        src="{{ asset('images/products/' . $wishlist->product->image) }}"
                                                         alt="{{ $wishlist->product->name }}">
                                                 </td>
                                                 <td>{{ $wishlist->product->name }}</td>

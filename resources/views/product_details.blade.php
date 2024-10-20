@@ -22,7 +22,7 @@
                         <div class="row align-items-center">
                             <div class="col-md-5">
                                 <div class="product-slider-single normal-slider">
-                                    <img src="{{ asset('storage/' . $product->image) }}" alt="Product Image">
+                                    <img src="{{ asset('images/products/' . $product->image) }}" alt="Product Image">
                                 </div>
                             </div>
                             <div class="col-md-7">
@@ -95,7 +95,7 @@
                                     </div>
                                     <a href="{{ route('seller.profile', $product->seller_id) }}"
                                         class="d-flex align-items-center px-0 mt-1 pt-1">
-                                        <img src="{{ asset(empty($product->seller->profile_photo_path) ? 'storage/user_profile_images/user.png' : 'storage/' . $product->seller->profile_photo_path) }}"
+                                        <img src="{{ asset(empty($product->seller->profile_photo_path) ? 'storage/user_profile_images/user.png' : 'images/user_profile_images/' . $product->seller->profile_photo_path) }}"
                                             alt="Profile Picture" class="rounded-circle"
                                             style="width: 30px; height: 30px; margin-right: 8px;">
                                         <p
@@ -233,7 +233,7 @@
                                     </div>
                                     <div class="product-image align-content-center">
                                         <a href="{{ route('products.details', $product->id) }}">
-                                            <img src="{{ asset('storage/' . $product->image) }}" alt="Product Image">
+                                            <img src="{{ asset('images/products/' . $product->image) }}" alt="Product Image">
                                         </a>
                                         <div class="product-action d-none d-md-flex d-lg-flex">
                                             <a href="#"><i class="fa fa-heart"></i></a>

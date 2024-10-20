@@ -38,7 +38,7 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td class="py-1">
-                                        <img src="{{ $agent->profile_photo_path ? asset('storage/' . $agent->profile_photo_path) : asset('admin_temp/images/faces/face3.jpg') }}"
+                                        <img src="{{ $agent->profile_photo_path ? asset('images/user_profile_images/' . $agent->profile_photo_path) : asset('admin_temp/images/faces/face3.jpg') }}"
                                             alt="image" width="100" />
                                     </td>
 

@@ -35,61 +35,64 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         ) {
             $this->updateVerifiedUser($user, $input);
         } else {
+           // Get the base64 data
+    $croppedImage = $input['cropped_image'];
 
-            // Get the base64 data
-            $croppedImage = $input['cropped_image'];
+    if ($croppedImage) {
+        // Extract the image data from the base64 string
+        $imageData = explode(',', $croppedImage);
+        $imageBase64 = $imageData[1];
 
-            if ($croppedImage) {
-                // Extract the image data from the base64 string
-                $imageData = explode(',', $croppedImage);
-                $imageBase64 = $imageData[1];
+        // Decode the image data
+        $image = base64_decode($imageBase64);
 
-                // Decode the image data
-                $image = base64_decode($imageBase64);
+        // Create a unique file name for the image
+        $fileName = 'admin_' . base64_encode($input['name'] . time()) . '.png';
+        $filePath = "images/user_profile_images/$fileName"; // Update the path
 
-                // Create a unique file name for the image
-                $fileName = base64_encode('agent_' . $input['name'] . time()) . '.png';
-                $filePath = "user_profile_images/$fileName";
+        // Save the image to a file using traditional file handling
+        file_put_contents(public_path($filePath), $image);
 
-                // Save the image to a file
-                Storage::disk('public')->put($filePath, $image);
-
-                // Delete the old profile photo if it exists
-                if ($user->profile_photo_path) {
-                    Storage::disk('public')->delete($user->profile_photo_path);
-                }
-
-                // Save the new file path to the database
-                $user->forceFill([
-                    'profile_photo_path' => $filePath,
-                ])->save();
-            }
-
-            $user->forceFill([
-                'name' => $input['name'],
-                'email' => $input['email'],
-                'phone' => $input['phone'],
-            ])->save();
-
-            // $user->sellerDetail->forceFill(['whatsapp_number' => $input['whatsapp']])->save();
+        // Delete the old profile photo if it exists
+        if ($user->profile_photo_path && file_exists(public_path($user->profile_photo_path))) {
+            unlink(public_path($user->profile_photo_path));
         }
+
+        // Save only the file name to the database
+        $user->forceFill([
+            'profile_photo_path' => $fileName, // Store only the file name, not the full path
+        ])->save();
+    }
+
+    // Update the user's other details
+    $user->forceFill([
+        'name' => $input['name'],
+        'email' => $input['email'],
+        'phone' => $input['phone'],
+    ])->save();
+
+    // $user->sellerDetail->forceFill(['whatsapp_number' => $input['whatsapp']])->save();
+}
+        
     }
 
     public function removeProfilePicture(User $user)
     {
         if ($user->profile_photo_path) {
-            // Delete the profile picture from storage
-            Storage::disk('public')->delete($user->profile_photo_path);
-
+            // Delete the profile picture using traditional file handling
+            $filePath = public_path('images/user_profile_images/' . $user->profile_photo_path);
+            
+            if (file_exists($filePath)) {
+                unlink($filePath); // Remove the file from the server
+            }
+    
             // Remove the path from the database
             $user->forceFill([
-                'profile_photo_path' => null,
+                'profile_photo_path' => null, // Clear the path in the database
             ])->save();
         }
     }
-
-
-
+    
     /**
      * Update the given verified user's profile information.
      *

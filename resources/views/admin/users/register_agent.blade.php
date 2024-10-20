@@ -60,7 +60,7 @@
                                 <input type="file" class="custom-file-input form-control" id="fileUpload" name="profile">
                                 <input type="hidden" name="cropped_image" id="croppedImage">
                                 @if (isset($agent->profile_photo_path))
-                                    <img src="{{ asset('storage/' . $agent->profile_photo_path) }}" class="mt-3 text-center"
+                                    <img src="{{ asset('images/user_profile_images/' . $agent->profile_photo_path) }}" class="mt-3 text-center"
                                         alt="Profile Picture" width="100">
                                 @endif
                             </div>

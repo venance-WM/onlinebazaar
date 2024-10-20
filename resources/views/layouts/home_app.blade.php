@@ -187,8 +187,8 @@
                                 </a>
                             </p>
                             <p>
-                                <a href="tel:+255653494068" class="text-dark text-decoration-none">
-                                    <i class="fa fa-phone"></i> +255 653 494 068
+                                <a href="tel:+255756494068" class="text-dark text-decoration-none">
+                                    <i class="fa fa-phone"></i>+255756494068
                                 </a>
                             </p>
                             
@@ -201,12 +201,12 @@
                         <h5>Follow Us</h5>
                         <div class="contact-info">
                             <div class="social">
-                                <a href="https://twitter.com" target="_blank"><i class="fab fa-twitter"></i></a>
-                                <a href="https://www.facebook.com" target="_blank"><i
-                                        class="fab fa-facebook-f"></i></a>
-                                <a href="https://www.instagram.com" target="_blank"><i
-                                        class="fab fa-instagram"></i></a>
-                                        <a href="https://www.youtube.com/@bazaarmobilestore" target="_blank">
+                                <a href="https://x.com/bazaar_0nline?fbclid=IwZXh0bgNhZW0CMTEAAR1_eKYPB2Vy0fyMlO4WZqRG3LxqQ9IsyerTg1yuOaQXAFSSSyGW62zYCFY_aem_9aM5ONHpYj7yRunxc-R13g" target="_blank"><i class="fab fa-twitter"></i></a>
+                               
+                                        <a href="https://www.facebook.com/profile.php?id=100069910512268" target="_blank">
+                                            <i class="fab fa-facebook"></i>
+                                        </a>
+                                <a href="https://www.youtube.com/@bazaarmobilestore" target="_blank">
                                             <i class="fab fa-youtube"></i>
                                         </a>
                                         

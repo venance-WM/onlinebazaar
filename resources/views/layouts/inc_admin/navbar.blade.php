@@ -43,10 +43,11 @@
 @endif
 
                     <li class="nav-item nav-profile dropdown">
-                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
-                    <img src="{{ Auth::user()->profile_photo_path != null ? asset('storage/' . Auth::user()->profile_photo_path) : asset('admin_temp/images/faces/user.png') }}" style="object-fit: cover;" alt="profile" />
-                    <span class="nav-profile-name">{{ Auth::user()->name }}</span>
-                </a>
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
+                            <img src="{{ Auth::user()->profile_photo_path != null ? asset('images/user_profile_images/' . Auth::user()->profile_photo_path) : asset('admin_temp/images/faces/user.png') }}" style="object-fit: cover;" alt="profile 1" />
+                            <span class="nav-profile-name">{{ Auth::user()->name }}</span>
+                        </a>
+                        
                 <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
                     {{-- <a class="dropdown-item" href="#">
               <i class="mdi mdi-settings text-primary"></i>

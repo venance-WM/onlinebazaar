@@ -89,7 +89,7 @@
                             </div>
                             <div class="product-image align-content-center">
                                 <a href="{{ route('products.details', $product->id) }}">
-                                    <img src="{{ asset('storage/' . $product->image) }}" alt="Product Image">
+                                    <img src="{{ asset('images/products/' . $product->image) }}" alt="Product Image">
                                 </a>
                                 <div class="product-action d-none d-md-flex d-lg-flex">
                                     <a href="#" class="wishlist-button" data-product-id="{{ $product->id }}">
@@ -173,7 +173,7 @@
                             </div>
                             <div class="product-image align-content-center">
                                 <a href="{{ route('services.show', $service->id) }}">
-                                    <img src="{{ asset('storage/' . $service->image) }}" alt="Product Image">
+                                    <img src="{{ asset('images/services/' . $service->image) }}" alt="Product Image">
                                 </a>
                                 <div class="product-action d-none d-md-flex d-lg-flex">
                                     <a href="#"><i class="fa fa-heart"></i></a>

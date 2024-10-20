@@ -32,66 +32,58 @@ public function create($user_id)
 }
 
 
-    public function store(Request $request)
-    {
-     
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'price' => 'nullable|numeric',
-            'seller_id' => 'required|integer',
-            'image' => 'required|image|mimes:jpeg,png,jpg',
-            'cropped_image' => 'required|string',
-        ]);
+public function store(Request $request)
+{
+    // Validate the form data
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'required|string',
+        'price' => 'nullable|numeric',
+        'seller_id' => 'required|integer',
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validate image upload
+        'cropped_image' => 'nullable|string',
+    ]);
 
-        // Handle the file upload
-        $imagePath = null;
+    // Prepare the input data
+    $input = $request->all();
 
-        // Get the base64 data
-        $croppedImage = $request->input('cropped_image');
-
-        if ($croppedImage) {
-            // Extract the image data from the base64 string
-            $imageData = explode(',', $croppedImage);
-            $imageBase64 = $imageData[1];
-
-            // Decode the image data
-            $image = base64_decode($imageBase64);
-
-            // Create a unique file name for the image
-            $fileName = base64_encode('product_' . rand(1000, 9999) . time()) . '.png';
-            $imagePath = "images/$fileName";
-
-            // Save the image to a file
-            Storage::disk('public')->put($imagePath, $image);
-        }
-    
-        $serviceData = [
-            'name' => $request->name,
-            'description' => $request->description,
-            'price' => $request->price,
-            'seller_id' => $request->seller_id,
-            'image' => $imagePath,
-        ];
-    
-        Log::info('Service Data:', $serviceData);
-    
-        // Log the entire request data
-        Log::info('Request Data:', $request->all());
-    
-        // Store the service request
-        $serviceRequest = ServiceRequest::create([
-            'action' => 'add',
-            'agent_id' => auth()->user()->id,
-            'service_id' => null, // The service ID is created after admin approval
-            'status' => 'pending',
-            'service_data' => json_encode($serviceData),
-        ]);
-    
-        Log::info('Service Request Created:', $serviceRequest->toArray());
-    
-        return redirect()->route('services.index')->with('success', 'Service request submitted successfully.');
+    // Handle the image upload
+    if ($image = $request->file('image')) {
+        $destinationPath = 'images/services'; // Destination path for images
+        $profileImage = date('YmdHis') . "." . $image->getClientOriginalExtension(); // Create a unique file name
+        $image->move($destinationPath, $profileImage); // Move the file to the destination folder
+        $input['image'] = "$profileImage"; // Save image name in input array to be stored in the database
     }
+
+    // Prepare the service data with the image path
+    $serviceData = [
+        'name' => $request->name,
+        'description' => $request->description,
+        'price' => $request->price,
+        'seller_id' => $request->seller_id,
+        'image' => $input['image'], // Save the image path in the database
+    ];
+
+    Log::info('Service Data:', $serviceData);
+
+    // Log the entire request data
+    Log::info('Request Data:', $request->all());
+
+    // Store the service request
+    $serviceRequest = ServiceRequest::create([
+        'action' => 'add',
+        'agent_id' => auth()->user()->id,
+        'service_id' => null, // The service ID is created after admin approval
+        'status' => 'pending',
+        'service_data' => json_encode($serviceData),
+    ]);
+
+    Log::info('Service Request Created:', $serviceRequest->toArray());
+
+    // Redirect with success message
+    return redirect()->route('services.index')->with('success', 'Service request submitted successfully.');
+}
+
     
     
     public function viewApprovedServices() {

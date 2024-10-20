@@ -20,7 +20,7 @@
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td>
-                            <img src="{{ asset('storage/' . $product['image']) }}" alt="{{ $product['name'] }}" width="50" class="img-thumbnail">
+                            <img src="{{ asset('images/products/' . $product['image']) }}" alt="{{ $product['name'] }}" width="50" class="img-thumbnail">
                         </td>
                         <td>{{ $product['name'] }}</td>
                         <td>{{ $product['description'] }}</td>

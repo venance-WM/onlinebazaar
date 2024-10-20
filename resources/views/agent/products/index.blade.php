@@ -41,7 +41,7 @@
                                     <td>TZs {{ $product['price'] }} /=</td>
                                     <td>
                                         @if (!empty($product['image']))
-                                            <img src="{{ asset('storage/' . $product['image']) }}" alt="{{ $product['name'] }}" width="50">
+                                            <img src="{{ asset('images/products/' . $product['image']) }}" alt="{{ $product['name'] }}" width="50">
                                         @else
                                             No Image
                                         @endif

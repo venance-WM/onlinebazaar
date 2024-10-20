@@ -7,7 +7,7 @@
         <div class="card p-4 text-center" style="width: 50%;">
             <!-- Display image in a small circle, centered -->
             @if(isset($serviceData['image']))
-                <img src="{{ asset('storage/' . $serviceData['image']) }}" 
+                <img src="{{ asset('images/services/' . $serviceData['image']) }}" 
                      alt="Service Image" 
                      style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 20px;">
             @else

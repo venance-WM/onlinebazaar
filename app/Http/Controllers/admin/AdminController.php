@@ -56,66 +56,61 @@ class AdminController extends Controller
 
     return view('admin.users.register_agent', compact('agent', 'agentDetails'));
   }
-
   public function register_agent(Request $request, User $user)
   {
-    $input = $request->all();
-
-    Validator::make($input, [
-      'name' => ['required', 'string', 'max:255'],
-      'phone' => ['required', 'string', 'max:15'],
-      'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->whereNull('deleted_at')],
-      'region' => ['required', 'integer'],
-      'district' => ['required', 'integer'],
-      'ward' => ['required', 'integer'],
-      'place' => ['nullable', 'string', 'max:255'],
-      'profile' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'], // Validate the profile photo
-    ])->validate();
-
-    // Handle the file upload
-    $profilePhotoPath = null;
-
-    // Get the base64 data
-    $croppedImage = $request->input('cropped_image');
-
-    if ($croppedImage) {
-      // Extract the image data from the base64 string
-      $imageData = explode(',', $croppedImage);
-      $imageBase64 = $imageData[1];
-
-      // Decode the image data
-      $image = base64_decode($imageBase64);
-
-      // Create a unique file name for the image
-      $fileName = base64_encode('agent_' . $input['name'] . time()) . '.png';
-      $profilePhotoPath = "user_profile_images/$fileName";
-
-      // Save the image to a file
-      Storage::disk('public')->put($profilePhotoPath, $image);
+      $input = $request->all();
+  
+      // Validate the input data
+      Validator::make($input, [
+          'name' => ['required', 'string', 'max:255'],
+          'phone' => ['required', 'string', 'max:15'],
+          'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->whereNull('deleted_at')],
+          'region' => ['required', 'integer'],
+          'district' => ['required', 'integer'],
+          'ward' => ['required', 'integer'],
+          'place' => ['nullable', 'string', 'max:255'],
+          'profile' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'], // Validate the profile photo
+      ])->validate();
+  
+      // Handle the image file upload
+      $profilePhotoPath = null;
+  
+      // Check if a profile image is uploaded via the 'profile' input
+      if ($image = $request->file('profile')) {
+        $destinationPath = 'images/user_profile_images'; // Updated destination path for profile images
+        $profileImage = date('YmdHis') . "." . $image->getClientOriginalExtension(); // Create a unique file name
+        $image->move($destinationPath, $profileImage); // Move the file to the destination folder
+        
+        // Store only the filename in the database, not the full path
+        $profilePhotoPath = $profileImage; 
     }
-
-    // Register agent into users
-    $agent = User::create([
-      'role' => 1, // Default role for Agent
-      'name' => $input['name'],
-      'phone' => $input['phone'],
-      'email' => $input['email'],
-      'password' => Hash::make(123456), // Default password of newly registered agent is 123456
-      'profile_photo_path' => $profilePhotoPath, // Save the profile photo path
-    ]);
-    // Save the agent details
-    $agent_details = new AgentDetail([
-      'user_id' => $agent->id,
-      'region_id' => $input['region'],
-      'district_id' => $input['district'],
-      'ward_id' => $input['ward'],
-      'street_id' => $input['street'],
-      'place' => $input['place'],
-    ]);
-    $agent_details->save();
-
-    return redirect()->route('admin.agents.manage')->with('success', 'Agent Registered successfully!');
+    
+  
+      // Register the agent into the users table
+      $agent = User::create([
+          'role' => 1, // Default role for Agent
+          'name' => $input['name'],
+          'phone' => $input['phone'],
+          'email' => $input['email'],
+          'password' => Hash::make(123456), // Default password of newly registered agent is 123456
+          'profile_photo_path' => $profilePhotoPath, // Save the profile photo path in the database
+      ]);
+  
+      // Save the agent details in the agent_details table
+      $agent_details = new AgentDetail([
+          'user_id' => $agent->id,
+          'region_id' => $input['region'],
+          'district_id' => $input['district'],
+          'ward_id' => $input['ward'],
+          'street_id' => $input['street'] ?? null, // Optional street ID
+          'place' => $input['place'],
+      ]);
+      $agent_details->save();
+  
+      // Redirect with a success message
+      return redirect()->route('admin.agents.manage')->with('success', 'Agent registered successfully!');
   }
+  
 
   public function show_edit_agent($id)
   {
@@ -126,71 +121,74 @@ class AdminController extends Controller
 
   public function update_agent(Request $request, $id)
   {
-    // Find the agent and agent details
-    $agent = User::findOrFail($id);
-    $agentDetails = AgentDetail::where('user_id', $id)->firstOrFail();
-
-    // Validate the request data
-    $request->validate([
-      'name' => 'required|string|max:255',
-      'email' => "required|email|max:255|unique:users,email,$id",
-      'phone' => 'nullable|string|max:15',
-      'profile' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:2048',
-      'region' => 'required|integer|exists:regions,id',
-      'district' => 'required|integer|exists:districts,id',
-      'ward' => 'required|integer|exists:wards,id',
-      'street' => 'required|integer|exists:streets,id',
-      'place' => 'nullable|string|max:255',
-    ]);
-
-    // Update agent data
-    $agent->name = $request->input('name');
-    $agent->email = $request->input('email');
-    $agent->phone = $request->input('phone');
-
-    // Get the base64 data
-    $croppedImage = $request->input('cropped_image');
-
-    if ($croppedImage) {
-      // Extract the image data from the base64 string
-      $imageData = explode(',', $croppedImage);
-      $imageBase64 = $imageData[1];
-
-      // Decode the image data
-      $image = base64_decode($imageBase64);
-
-      // Create a unique file name for the image
-      $fileName = base64_encode('agent_' . $agent->name . time()) . '.png';
-      $filePath = "user_profile_images/$fileName";
-
-      // Save the image to a file
-      Storage::disk('public')->put($filePath, $image);
-
-      // Delete the old profile photo if it exists
-      if ($agent->profile_photo_path) {
-        Storage::disk('public')->delete($agent->profile_photo_path);
+      // Find the agent and agent details
+      $agent = User::findOrFail($id);
+      $agentDetails = AgentDetail::where('user_id', $id)->firstOrFail();
+  
+      // Validate the request data
+      $request->validate([
+          'name' => 'required|string|max:255',
+          'email' => "required|email|max:255|unique:users,email,$id",
+          'phone' => 'nullable|string|max:15',
+          'profile' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:2048',
+          'region' => 'required|integer|exists:regions,id',
+          'district' => 'required|integer|exists:districts,id',
+          'ward' => 'required|integer|exists:wards,id',
+          'street' => 'required|integer|exists:streets,id',
+          'place' => 'nullable|string|max:255',
+      ]);
+  
+      // Update agent data
+      $agent->name = $request->input('name');
+      $agent->email = $request->input('email');
+      $agent->phone = $request->input('phone');
+  
+      // Get the base64 data
+      $croppedImage = $request->input('cropped_image');
+  
+      if ($croppedImage) {
+          // Extract the image data from the base64 string
+          $imageData = explode(',', $croppedImage);
+          $imageBase64 = $imageData[1];
+  
+          // Decode the image data
+          $image = base64_decode($imageBase64);
+  
+          // Create a unique file name for the image
+          $fileName = 'agent_' . base64_encode($agent->name . time()) . '.png';
+          $filePath = public_path("images/user_profile_images/$fileName");
+  
+          // Save the image to the user_profile_images folder in public
+          file_put_contents($filePath, $image);
+  
+          // Delete the old profile photo if it exists
+          if ($agent->profile_photo_path && file_exists(public_path("images/user_profile_images/{$agent->profile_photo_path}"))) {
+              unlink(public_path("images/user_profile_images/{$agent->profile_photo_path}"));
+          }
+  
+          // Save only the filename to the database (not the full path)
+          $agent->forceFill([
+              'profile_photo_path' => $fileName,
+          ])->save();
       }
-
-      // Save the new file path to the database
-      $agent->forceFill([
-        'profile_photo_path' => $filePath,
-      ])->save();
-    }
-
-    // Update agent details
-    $agentDetails->region_id = $request->input('region');
-    $agentDetails->district_id = $request->input('district');
-    $agentDetails->ward_id = $request->input('ward');
-    $agentDetails->street_id = $request->input('street');
-    $agentDetails->place = $request->input('place');
-
-    // Save the changes
-    $agent->save();
-    $agentDetails->save();
-
-    // Redirect with a success message
-    return redirect()->route('admin.agents.manage')->with('success', 'Agent updated successfully!');
+  
+      // Update agent details
+      $agentDetails->region_id = $request->input('region');
+      $agentDetails->district_id = $request->input('district');
+      $agentDetails->ward_id = $request->input('ward');
+      $agentDetails->street_id = $request->input('street');
+      $agentDetails->place = $request->input('place');
+  
+      // Save the changes
+      $agent->save();
+      $agentDetails->save();
+  
+      // Redirect with a success message
+      return redirect()->route('admin.agents.manage')->with('success', 'Agent updated successfully!');
   }
+  
+  
+  
 
 
   public function update_agent_status($id)
@@ -385,111 +383,111 @@ class AdminController extends Controller
   // Method to approve seller request (already discussed)
   private function approveSellerRequest(SellerRequest $request)
   {
-    $sellerData = json_decode($request->data, true);
-
-    switch ($request->action) {
-      case 'update':
-        $seller = User::where('email', $sellerData['email'])->first();
-
-        // Update existing seller
-        $seller->update([
-          'role' => User::ROLE_SELLER,
-          'status' => 'enabled',
-          'name' => $sellerData['name'],
-          'phone' => $sellerData['phone'],
-          'gender' => $sellerData['gender'],
-          'nida' => $sellerData['nida'],
-          'profile_photo_path' => $sellerData['profile_photo_path'],
-        ]);
-
-        // Update or create SellerDetail
-        SellerDetail::updateOrCreate(
-          ['user_id' => $seller->id],
-          [
-            'region_id' => $sellerData['region_id'],
-            'district_id' => $sellerData['district_id'],
-            'ward_id' => $sellerData['ward_id'],
-            'street_id' => $sellerData['street_id'],
-            'zone' => $sellerData['zone'],
-            'business_type' => $sellerData['business_type'],
-            'business_name' => $sellerData['business_name'],
-            'trading_name' => $sellerData['trading_name'],
-            'sector_of_shop' => $sellerData['sector_of_shop'],
-            'whatsapp_number' => $sellerData['whatsapp_number'],
-            'latitude' => $sellerData['latitude'],
-            'longitude' => $sellerData['longitude'],
-            'shop_image_one' => $sellerData['croppedCoverImageOne'],
-            'shop_image_two' => $sellerData['croppedCoverImageTwo'],
-            'shop_image_three' => $sellerData['croppedCoverImageThree'],
-          ]
-        );
-        break;
-      case 'add':
-        $seller = User::create([
-          'role' => User::ROLE_SELLER,
-          'status' => 'enabled',
-          'name' => $sellerData['name'],
-          'phone' => $sellerData['phone'],
-          'email' => $sellerData['email'],
-          'gender' => $sellerData['gender'],
-          'nida' => $sellerData['nida'],
-          'password' => Hash::make(123456),
-          'profile_photo_path' => $sellerData['profile_photo_path'],
-        ]);
-
-        SellerDetail::create([
-          'user_id' => $seller->id,
-          'region_id' => $sellerData['region_id'],
-          'district_id' => $sellerData['district_id'],
-          'ward_id' => $sellerData['ward_id'],
-          'street_id' => $sellerData['street_id'],
-          'zone' => $sellerData['zone'],
-          'business_type' => $sellerData['business_type'],
-          'business_name' => $sellerData['business_name'],
-          'trading_name' => $sellerData['trading_name'],
-          'sector_of_shop' => $sellerData['sector_of_shop'],
-          'whatsapp_number' => $sellerData['whatsapp_number'],
-          'latitude' => $sellerData['latitude'],
-          'longitude' => $sellerData['longitude'],
-          'shop_image_one' => $sellerData['croppedCoverImageOne'] ?? null,
-          'shop_image_two' => $sellerData['croppedCoverImageTwo'] ?? null,
-          'shop_image_three' => $sellerData['croppedCoverImageThree'] ?? null,
-        ]);
-        break;
-      case 'delete':
-        $seller = User::findOrFail($request->seller_id);
-        $seller->SellerDetail()->delete();
-        $seller->requests()->delete();
-
-        $seller->delete();
-
-        break;
-    }
-
-    // Handle Lipa Accounts
-    $lipaAccounts = $sellerData['lipa_accounts'] ?? [];
-    foreach ($lipaAccounts as $network => $account) {
-      if (!empty($account['name']) && !empty($account['number'])) {
-        LipaAccount::updateOrCreate(
-          [
-            'user_id' => $seller->id,
-            'network' => $network,
-          ],
-          [
-            'name' => $account['name'],
-            'number' => $account['number'],
-          ]
-        );
+      $sellerData = json_decode($request->data, true);
+  
+      switch ($request->action) {
+          case 'update':
+              $seller = User::where('email', $sellerData['email'])->first();
+  
+              // Update existing seller
+              $seller->update([
+                  'role' => User::ROLE_SELLER,
+                  'status' => 'enabled',
+                  'name' => $sellerData['name'],
+                  'phone' => $sellerData['phone'],
+                  'gender' => $sellerData['gender'],
+                  'nida' => $sellerData['nida'],
+                  'profile_photo_path' => $sellerData['profile_photo_path'] ?? null, // Avoid undefined key
+              ]);
+  
+              // Update or create SellerDetail
+              SellerDetail::updateOrCreate(
+                  ['user_id' => $seller->id],
+                  [
+                      'region_id' => $sellerData['region_id'],
+                      'district_id' => $sellerData['district_id'],
+                      'ward_id' => $sellerData['ward_id'],
+                      'street_id' => $sellerData['street_id'],
+                      'zone' => $sellerData['zone'],
+                      'business_type' => $sellerData['business_type'],
+                      'business_name' => $sellerData['business_name'],
+                      'trading_name' => $sellerData['trading_name'],
+                      'sector_of_shop' => $sellerData['sector_of_shop'],
+                      'whatsapp_number' => $sellerData['whatsapp_number'],
+                      'latitude' => $sellerData['latitude'],
+                      'longitude' => $sellerData['longitude'],
+                      'shop_image_one' => $sellerData['croppedCoverImageOne'] ?? null, // Avoid undefined key
+                      'shop_image_two' => $sellerData['croppedCoverImageTwo'] ?? null, // Avoid undefined key
+                      'shop_image_three' => $sellerData['croppedCoverImageThree'] ?? null, // Avoid undefined key
+                  ]
+              );
+              break;
+          case 'add':
+              $seller = User::create([
+                  'role' => User::ROLE_SELLER,
+                  'status' => 'enabled',
+                  'name' => $sellerData['name'],
+                  'phone' => $sellerData['phone'],
+                  'email' => $sellerData['email'],
+                  'gender' => $sellerData['gender'],
+                  'nida' => $sellerData['nida'],
+                  'password' => Hash::make(123456),
+                  'profile_photo_path' => $sellerData['profile_photo_path'] ?? null, // Avoid undefined key
+              ]);
+  
+              SellerDetail::create([
+                  'user_id' => $seller->id,
+                  'region_id' => $sellerData['region_id'],
+                  'district_id' => $sellerData['district_id'],
+                  'ward_id' => $sellerData['ward_id'],
+                  'street_id' => $sellerData['street_id'],
+                  'zone' => $sellerData['zone'],
+                  'business_type' => $sellerData['business_type'],
+                  'business_name' => $sellerData['business_name'],
+                  'trading_name' => $sellerData['trading_name'],
+                  'sector_of_shop' => $sellerData['sector_of_shop'],
+                  'whatsapp_number' => $sellerData['whatsapp_number'],
+                  'latitude' => $sellerData['latitude'],
+                  'longitude' => $sellerData['longitude'],
+                  'shop_image_one' => $sellerData['croppedCoverImageOne'] ?? null, // Avoid undefined key
+                  'shop_image_two' => $sellerData['croppedCoverImageTwo'] ?? null, // Avoid undefined key
+                  'shop_image_three' => $sellerData['croppedCoverImageThree'] ?? null, // Avoid undefined key
+              ]);
+              break;
+          case 'delete':
+              $seller = User::findOrFail($request->seller_id);
+              $seller->SellerDetail()->delete();
+              $seller->requests()->delete();
+  
+              $seller->delete();
+              break;
       }
-    }
-
-    // Update the seller request status to approved
-    $request->update([
-      'status' => 'approved',
-      'admin_id' => auth()->id(),
-      'seller_id' => $seller->id,
-    ]);
+  
+      // Handle Lipa Accounts
+      $lipaAccounts = $sellerData['lipa_accounts'] ?? [];
+      foreach ($lipaAccounts as $network => $account) {
+          if (!empty($account['name']) && !empty($account['number'])) {
+              LipaAccount::updateOrCreate(
+                  [
+                      'user_id' => $seller->id,
+                      'network' => $network,
+                  ],
+                  [
+                      'name' => $account['name'],
+                      'number' => $account['number'],
+                  ]
+              );
+          }
+      }
+  
+      // Update the seller request status to approved
+      $request->update([
+          'status' => 'approved',
+          'admin_id' => auth()->id(),
+          'seller_id' => $seller->id,
+      ]);
   }
+  
 
   // !! APPROVE OR DECLINE REQUESTS OF PRODUCTS AND SERVICES !! //--------------------------------------------------------------------
 
@@ -541,9 +539,10 @@ class AdminController extends Controller
 
     // Optionally, delete the image if it was uploaded
     $productData = json_decode($productRequest->data, true);
-    if (isset($productData['image']) && Storage::disk('public')->exists($productData['image'])) {
-      Storage::disk('public')->delete($productData['image']);
-    }
+    if (isset($productData['image']) && file_exists(public_path("images/products/{$productData['image']}"))) {
+      unlink(public_path("images/products/{$productData['image']}"));
+  }
+  
 
     // Delete the product request
     $productRequest->delete();

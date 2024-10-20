@@ -34,7 +34,7 @@
                         <td>
                             <!-- Display image in a small circle -->
                             @if(isset($serviceData['image'])) 
-                                <img src="{{ asset('storage/' . $serviceData['image']) }}" 
+                                <img src="{{ asset('images/services/' . $serviceData['image']) }}" 
                                      alt="Service Image" 
                                      style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
                             @else

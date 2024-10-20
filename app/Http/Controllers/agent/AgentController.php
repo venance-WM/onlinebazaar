@@ -156,7 +156,8 @@ public function viewPendingApprovals()
     public function storeSeller(Request $request)
     {
         $input = $request->all();
-
+    
+        // Validate the input data
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:15'],
@@ -179,29 +180,18 @@ public function viewPendingApprovals()
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
         ]);
-
-        // Handle the file upload
+    
+        // Handle the image upload (similar to previous examples)
         $profilePhotoPath = null;
-
-        // Get the base64 data
-        $croppedImage = $validated['cropped_image'];
-
-        if ($croppedImage) {
-            // Extract the image data from the base64 string
-            $imageData = explode(',', $croppedImage);
-            $imageBase64 = $imageData[1];
-
-            // Decode the image data
-            $image = base64_decode($imageBase64);
-
-            // Create a unique file name for the image
-            $fileName = base64_encode('agent_' . $validated['name'] . time()) . '.png';
-            $profilePhotoPath = "user_profile_images/$fileName";
-
-            // Save the image to a file
-            Storage::disk('public')->put($profilePhotoPath, $image);
+    
+        // Check if an image file was uploaded
+        if ($image = $request->file('profile')) {
+            $destinationPath = 'images/user_profile_images'; // Set the destination path for the image
+            $profileImage = date('YmdHis') . "." . $image->getClientOriginalExtension(); // Create a unique file name
+            $image->move($destinationPath, $profileImage); // Move the file to the destination folder
+            $profilePhotoPath = "$profileImage"; // Save the image path
         }
-
+    
         // Create a new seller request
         $sellerRequest = SellerRequest::create([
             'agent_id' => auth()->id(),
@@ -212,7 +202,7 @@ public function viewPendingApprovals()
                 'email' => $validated['email'],
                 'gender' => $input['gender'],
                 'nida' => $input['nida'],
-                'profile_photo_path' => $profilePhotoPath,
+                'profile_photo_path' => $profilePhotoPath, // Save image path in the database
                 'region_id' => $validated['region'],
                 'district_id' => $validated['district'],
                 'ward_id' => $validated['ward'],
@@ -230,10 +220,11 @@ public function viewPendingApprovals()
             'action' => 'add',
             'status' => 'pending',
         ]);
-
+    
+        // Redirect with success message
         return redirect()->route('pending_sellers')->with('success', 'Congrats! New registration submitted successfully, awaiting admin approval.');
     }
-
+    
     public function view_seller_request($id)
     {
         // Find the seller request by ID
@@ -260,10 +251,10 @@ public function viewPendingApprovals()
     {
         // Retrieve the existing seller request by ID
         $sellerRequest = SellerRequest::where('seller_id', $id)->firstOrFail();
-
+    
         // Get all input data
         $input = $request->all();
-
+    
         // Validate the incoming request data
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -287,29 +278,43 @@ public function viewPendingApprovals()
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
         ]);
-
+    
         // Handle the file upload
-        $profilePhotoPath = $sellerRequest->data['profile_photo_path'] ?? null;
-
-        // Get the base64 data
-        $croppedImage = $validated['cropped_image'];
-
+        $profilePhotoFileName = $sellerRequest->data['profile_photo_path'] ?? null;
+    
+        // Check if a new profile image is uploaded
+        if ($request->hasFile('profile')) {
+            // Get the uploaded image file
+            $image = $request->file('profile');
+            $destinationPath = 'images/user_profile_images'; // Directory for storing images
+            $fileName = date('YmdHis') . "_" . uniqid() . "." . $image->getClientOriginalExtension(); // Create a unique file name
+    
+            // Move the image to the destination directory
+            $image->move($destinationPath, $fileName);
+    
+            // Store only the filename in the database
+            $profilePhotoFileName = $fileName;
+        }
+    
+        // Get the base64 data if available
+        $croppedImage = $validated['cropped_image'] ?? null;
+    
         if ($croppedImage) {
             // Extract the image data from the base64 string
             $imageData = explode(',', $croppedImage);
             $imageBase64 = $imageData[1];
-
+    
             // Decode the image data
             $image = base64_decode($imageBase64);
-
+    
             // Create a unique file name for the image
-            $fileName = base64_encode('agent_' . $validated['name'] . time()) . '.png';
-            $profilePhotoPath = "user_profile_images/$fileName";
-
-            // Save the image to a file
-            Storage::disk('public')->put($profilePhotoPath, $image);
+            $fileName = 'agent_' . base64_encode($validated['name'] . time()) . '.png';
+            $profilePhotoFileName = $fileName;
+    
+            // Save the image to a file using traditional file handling
+            file_put_contents(public_path("images/user_profile_images/$fileName"), $image);
         }
-
+    
         // Update the existing seller request with the new data
         $sellerRequest->update([
             'data' => json_encode([
@@ -319,7 +324,7 @@ public function viewPendingApprovals()
                 'email' => $validated['email'],
                 'gender' => $input['gender'],
                 'nida' => $input['nida'],
-                'profile_photo_path' => $profilePhotoPath,
+                'profile_photo_path' => $profilePhotoFileName, // Store only the file name
                 'region_id' => $validated['region'],
                 'district_id' => $validated['district'],
                 'ward_id' => $validated['ward'],
@@ -337,61 +342,79 @@ public function viewPendingApprovals()
             'action' => 'update',
             'status' => 'pending',
         ]);
-
+    
         return redirect()->route('pending_sellers')->with('success', 'Update Seller request submitted successfully, awaiting review.');
     }
+    
 
     public function updateShopCoverImages(Request $request, $id)
     {
         // Retrieve the existing seller request by ID
         $sellerRequest = SellerRequest::where('seller_id', $id)->firstOrFail();
-
+    
         // Validate the incoming request data for the uploaded images
         $validated = $request->validate([
-            'croppedCoverImageOne' => ['nullable', 'string'], // base64 string
-            'croppedCoverImageTwo' => ['nullable', 'string'], // base64 string
-            'croppedCoverImageThree' => ['nullable', 'string'], // base64 string
+            'croppedCoverImageOne' => ['nullable', 'string'],
+            'croppedCoverImageTwo' => ['nullable', 'string'],
+            'croppedCoverImageThree' => ['nullable', 'string'],
+            'coverImageOne' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'coverImageTwo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'coverImageThree' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
-
-        // Decode the existing JSON data from the `data` column, or start with an empty array if null
+    
+        // Decode the existing JSON data from the `data` column
         $existingData = json_decode($sellerRequest->data, true) ?? [];
-
-        // Function to handle the base64 image upload
-        $uploadPath = 'shop_cover_images/';
-
-        // Process each image
+    
+        // Set the destination path for shop cover images
+        $uploadPath = 'images/shop_cover_images';
+    
+        // Handle file uploads for normal image files
+        foreach (['coverImageOne', 'coverImageTwo', 'coverImageThree'] as $imageField) {
+            if ($image = $request->file($imageField)) {
+                // Create a unique file name
+                $fileName = date('YmdHis') . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                // Move the uploaded file to the specified directory
+                $image->move($uploadPath, $fileName);
+                // Store only the file name in the existing data array
+                $existingData[$imageField] = $fileName;
+            }
+        }
+    
+        // Handle base64 image uploads
         foreach (['croppedCoverImageOne', 'croppedCoverImageTwo', 'croppedCoverImageThree'] as $index => $imageField) {
-            if (isset($validated[$imageField]) && !empty($validated[$imageField])) {
-                // Extract the base64 data
+            if (!empty($validated[$imageField])) {
                 $imageData = explode(',', $validated[$imageField]);
-                if (count($imageData) > 1) {
+                if (count($imageData) > 1 && isset($imageData[1])) {
                     $imageBase64 = $imageData[1];
-
-                    // Decode the image data
                     $image = base64_decode($imageBase64);
-
-                    // Create a unique file name for the image
-                    $fileName = ($index + 1) . '_' . time() . '_' . uniqid() . '.jpg'; // +1 for human-friendly index
-                    $filePath = "$uploadPath$fileName";
-
+                    $fileName = ($index + 1) . '_' . time() . '_' . uniqid() . '.jpg';
+                    $filePath = "$uploadPath/$fileName";
+    
                     // Save the image to a file
-                    Storage::disk('public')->put($filePath, $image);
-
-                    // Store the path in the existing data array
-                    $existingData[$imageField] = $filePath;
+                    if (file_put_contents($filePath, $image) === false) {
+                        // Handle the error of file write failure
+                        return redirect()->back()->with('error', 'Failed to save base64 image.');
+                    }
+    
+                    // Store only the file name in the existing data array
+                    $existingData[$imageField] = $fileName;
                 }
             }
         }
-
+    
         // Update the seller request with the updated JSON data
         $sellerRequest->update([
             'data' => json_encode($existingData),
             'action' => 'update',
             'status' => 'pending',
         ]);
-
+    
         return redirect()->route('pending_sellers')->with('success', 'Shop cover images updated successfully, awaiting review.');
     }
+    
+    
+    
+    
 
     public function deleteSeller($sellerId)
     {

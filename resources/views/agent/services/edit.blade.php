@@ -26,7 +26,7 @@
                     <input type="hidden" name="cropped_image" id="croppedImage">
                     @if ($service->image)
                         <div class="mt-2">
-                            <img src="{{ asset('storage/' . $service->image) }}" alt="{{ $service->title }}"
+                            <img src="{{ asset('images/services/' . $service->image) }}" alt="{{ $service->title }}"
                                 class="img-fluid" width="200">
                         </div>
                     @endif

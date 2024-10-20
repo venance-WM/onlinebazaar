@@ -98,7 +98,7 @@
                                     required>
                                 <input type="hidden" name="cropped_image" id="croppedImage">
                                 @if (isset($seller->profile_photo_path))
-                                    <img src="{{ asset('storage/' . $seller->profile_photo_path) }}" alt="Profile Picture"
+                                    <img src="{{ asset('images/user_profile_images/' . $seller->profile_photo_path) }}" alt="Profile Picture!"
                                         width="100">
                                 @endif
                             </div>

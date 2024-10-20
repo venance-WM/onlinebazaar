@@ -46,7 +46,7 @@
                         <input type="file" name="image" class="form-control" id="fileUpload" accept="image/*">
                         <input type="hidden" name="cropped_image" id="croppedImage">
                         @if(!empty($productData['image']))
-                            <img src="{{ asset('storage/' . $productData['image']) }}" alt="{{ $productData['name'] }}" width="100">
+                            <img src="{{ asset('images/products/' . $productData['image']) }}" alt="{{ $productData['name'] }}" width="100">
                         @endif
                     </div>
                 </div>

@@ -40,9 +40,9 @@
                                     <td>{{ $loop->iteration }}</td>
                                     <td class="py-1">
                                         <img src="{{ isset(json_decode($request->data)->profile_photo_path) && json_decode($request->data)->profile_photo_path
-                                            ? asset('storage/' . json_decode($request->data)->profile_photo_path)
+                                            ? asset('images/user_profile_images/' . json_decode($request->data)->profile_photo_path)
                                             : (isset($request->seller->profile_photo_path) && $request->seller->profile_photo_path
-                                                ? asset('storage/' . $request->seller->profile_photo_path)
+                                                ? asset('images/user_profile_images/' . $request->seller->profile_photo_path)
                                                 : asset('admin_temp/images/faces/user.png')) }}"
                                             alt="image" width="100" />
                                     </td>

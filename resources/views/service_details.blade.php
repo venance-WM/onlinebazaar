@@ -22,7 +22,7 @@
                         <div class="row align-items-center">
                             <div class="col-md-5">
                                 <div class="product-slider-single normal-slider">
-                                    <img src="{{ asset('storage/' . $service->image) }}" alt="Product Image">
+                                    <img src="{{ asset('images/services/' . $service->image) }}" alt="Product Image">
                                 </div>
                             </div>
                             <div class="col-md-7">
@@ -64,7 +64,7 @@
                                     </div>
                                     <a href="{{ route('seller.profile', $service->seller_id) }}"
                                         class="d-flex align-items-center px-0 mt-1 pt-1">
-                                        <img src="{{ asset(empty($service->seller->profile_photo_path) ? 'storage/user_profile_images/user.png' : 'storage/' . $service->seller->profile_photo_path) }}"
+                                        <img src="{{ asset(empty($service->seller->profile_photo_path) ? 'storage/user_profile_images/user.png' : 'images/user_profile_images/' . $service->seller->profile_photo_path) }}"
                                             alt="Profile Picture" class="rounded-circle"
                                             style="width: 30px; height: 30px; margin-right: 8px;">
                                         <p

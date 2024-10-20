@@ -20,11 +20,12 @@
                     </div>
                     <div class="col-md-2">
                         <img src="{{ isset(json_decode($request->data)->profile_photo_path) && json_decode($request->data)->profile_photo_path
-                            ? asset('storage/' . json_decode($request->data)->profile_photo_path)
-                            : (isset($request->seller->profile_photo_path) && $request->seller->profile_photo_path
-                                ? asset('storage/' . $request->seller->profile_photo_path)
-                                : asset('admin_temp/images/faces/user.png')) }}"
-                            alt="image" class="img-fluid" />
+                        ? asset('images/user_profile_images/' . json_decode($request->data)->profile_photo_path)
+                        : (isset($request->seller->profile_photo_path) && $request->seller->profile_photo_path
+                            ? asset('images/user_profile_images/' . $request->seller->profile_photo_path)
+                            : asset('admin_temp/images/faces/user.png')) }}"
+                 alt="image" class="img-fluid" />
+            
                     </div>
                 </div>
                 <div class="row">
@@ -151,9 +152,9 @@
 
                     @php
                         $coverImages = [
-                            'croppedCoverImageOne' => 'Shop Image One',
-                            'croppedCoverImageTwo' => 'Shop Image Two',
-                            'croppedCoverImageThree' => 'Shop Image Three',
+                            'croppedCoverImageOne' => 'Shop Image One (1)',
+                            'croppedCoverImageTwo' => 'Shop Image Two (2)',
+                            'croppedCoverImageThree' => 'Shop Image Three (3)',
                         ];
                     @endphp
 <div class="row">
@@ -161,9 +162,9 @@
                         @php
                             $imageData = json_decode($request->data)->$key ?? null;
                             $imageSrc = $imageData
-                                ? asset('storage/' . $imageData)
+                                ? asset('images/shop_cover_images/' . $imageData)
                                 : (isset($request->seller->$key) && $request->seller->$key
-                                    ? asset('storage/' . $request->seller->$key)
+                                    ? asset('images/shop_cover_images/' . $request->seller->$key)
                                     : null);
                         @endphp
 

@@ -5,7 +5,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex flex-column align-items-center text-center">
-                        <img src="{{ $user->profile_photo_path != null ? asset('storage/' . $user->profile_photo_path) : asset('admin_temp/images/faces/user.png') }}"
+                        <img src="{{ $user->profile_photo_path != null ? asset('images/user_profile_images/' . $user->profile_photo_path) : asset('admin_temp/images/faces/user.png') }}"
                             alt="User Profile Image" class="rounded-circle p-1 bg-primary" width="110" height="110"
                             style="object-fit: cover;">
                         @if ($user->role == 0 && $user->profile_photo_path != null)

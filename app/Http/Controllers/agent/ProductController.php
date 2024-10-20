@@ -38,57 +38,48 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'stock' => 'required|numeric',
             'unit' => 'required|exists:units,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg',
-            'cropped_image' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validate image upload
+            'cropped_image' => 'nullable|string',
             'seller_id' => 'required|exists:users,id' // Capture seller_id
         ]);
-
-        // Handle the file upload
-        $imagePath = null;
-
-        // Get the base64 data
-        $croppedImage = $request->input('cropped_image');
-
-        if ($croppedImage) {
-            // Extract the image data from the base64 string
-            $imageData = explode(',', $croppedImage);
-            $imageBase64 = $imageData[1];
-
-            // Decode the image data
-            $image = base64_decode($imageBase64);
-
-            // Create a unique file name for the image
-            $fileName = base64_encode('product_' . rand(1000, 9999) . time()) . '.png';
-            $imagePath = "images/$fileName";
-
-            // Save the image to a file
-            Storage::disk('public')->put($imagePath, $image);
+    
+        // Prepare the input data
+        $input = $request->all();
+    
+        // Handle the image upload
+        if ($image = $request->file('image')) {
+            $destinationPath = 'images/products'; // Destination path for images
+            $profileImage = date('YmdHis') . "." . $image->getClientOriginalExtension(); // Create a unique file name
+            $image->move($destinationPath, $profileImage); // Move the file to the destination folder
+            $input['image'] = "$profileImage"; // Save image name in input array to be stored in the database
         }
-
+    
         // Capture the authenticated agent's ID
         $agentId = Auth::user()->id;
         $sellerId = $request->input('seller_id');
-
-
-        // Store the product request data in JSON format
+    
+        // Store the product request data in JSON format using $input for image data
         ProductRequest::create([
-            'action' => 'add', // Indicating a ADD action
+            'action' => 'add', // Indicating an ADD action
             'data' => json_encode([
-                'seller_id' =>  $sellerId,
+                'seller_id' => $sellerId,
                 'category_id' => $request->category_id,
                 'name' => $request->product_name,
                 'description' => $request->description,
                 'price' => $request->price,
-                'image' => $imagePath,
+                'image' => $input['image'], // Save the image path in the database
                 'stock_quantity' => $request->stock,
                 'unit_id' => $request->unit,
             ]),
             'agent_id' => $agentId,
             'status' => 'pending', // Status is pending until approved by admin
         ]);
-
-        return redirect()->route('view_seller', ['id' => $sellerId])->with('success', 'Product request submitted successfully. Awaiting admin approval.');
+    
+        // Redirect with success message
+        return redirect()->route('view_seller', ['id' => $sellerId])
+                         ->with('success', 'Product request submitted successfully. Awaiting admin approval.');
     }
+    
 
     public function viewApprovedProducts()
     {
@@ -152,75 +143,109 @@ class ProductController extends Controller
     {
         $productRequest = ProductRequest::findOrFail($id);
         $productData = json_decode($productRequest->data, true);
+    
+        // Validate the incoming request data
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
             'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'cropped_image' => 'nullable|string',
         ]);
-
-        // Handle the file upload
-        $imagePath = null;
-
-        // Get the base64 data
-        $croppedImage = $request->input('cropped_image');
-
-        if ($croppedImage) {
-
+    
+        // Handle the file upload (traditional method)
+        $imagePath = $productData['image'] ?? null;
+    
+        // Check if a new image is uploaded via cropping (base64)
+        if ($request->has('cropped_image')) {
             // Delete the old image if it exists
-            if (!empty($productData['image'])) {
-                Storage::disk('public')->delete($productData['image']);
+            if (!empty($productData['image']) && file_exists(public_path("images/products/{$productData['image']}"))) {
+                unlink(public_path("images/products/{$productData['image']}"));
             }
-
+    
             // Extract the image data from the base64 string
-            $imageData = explode(',', $croppedImage);
-            $imageBase64 = $imageData[1];
-
-            // Decode the image data
-            $image = base64_decode($imageBase64);
-
-            // Create a unique file name for the image
-            $fileName = base64_encode('product_' . rand(1000, 9999) . time()) . '.png';
-            $imagePath = "images/$fileName";
-
-            // Save the image to a file
-            Storage::disk('public')->put($imagePath, $image);
-        } else {
-            // Keep the old image if no new one was uploaded
-            $imagePath = $productData['image'] ?? null;
+            $imageData = explode(',', $request->input('cropped_image'));
+    
+            // Check if the image data has the expected number of elements
+            if (count($imageData) > 1) {
+                $imageBase64 = $imageData[1];
+    
+                // Decode the base64 image
+                $image = base64_decode($imageBase64);
+    
+                // Create a unique file name for the image
+                $fileName = 'product_' . rand(1000, 9999) . time() . '.png';
+    
+                // Set the image path where the image will be stored
+                $imagePath = "products/$fileName";
+    
+                // Save the image to the traditional file system
+                file_put_contents(public_path("images/$imagePath"), $image);
+            } else {
+                // Handle the error: the base64 string is not in the expected format
+                return redirect()->back()->withErrors(['cropped_image' => 'Invalid image data format.']);
+            }
         }
-
-        // Update the product data array
+        // Check if a new image is uploaded via a file upload
+        elseif ($request->hasFile('image')) {
+            // Delete the old image if it exists
+            if (!empty($productData['image']) && file_exists(public_path("images/products/{$productData['image']}"))) {
+                unlink(public_path("images/products/{$productData['image']}"));
+            }
+    
+            // Get the uploaded image file
+            $image = $request->file('image');
+    
+            // Create a unique file name for the image
+            $fileName = 'product_' . rand(1000, 9999) . time() . '.' . $image->getClientOriginalExtension();
+    
+            // Set the image path where the image will be stored
+            $imagePath = "products/$fileName";
+    
+            // Move the uploaded image to the "images/products" directory
+            $image->move(public_path('images/products'), $fileName);
+        }
+    
+        // If no new image is provided, retain the old image path
+        $imagePath = $imagePath ?? $productData['image'];
+    
+        // Update the product data array with new values
         $updatedProductData = [
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
-            'image' => $imagePath,
+            'image' => $imagePath, // Store only the file name in the database
             'category_id' => $request->category_id,
             'stock_quantity' => $productData['stock_quantity'],
             'unit_id' => $productData['unit_id'],
             'seller_id' => $productData['seller_id'],
         ];
+    
+        // Update the product request with new data and status
         $productRequest->update([
             'data' => json_encode($updatedProductData),
             'status' => 'pending',
         ]);
-
+    
         return redirect()->route('agent.products.approved')->with('success', 'Product updated successfully. Awaiting admin approval.');
     }
+    
 
     public function destroy($id)
     {
         $productRequest = ProductRequest::findOrFail($id);
         $productData = json_decode($productRequest->data, true);
-        if (!empty($productData['image'])) {
-            Storage::disk('public')->delete($productData['image']);
+    
+        // Check if an image exists and delete it using the traditional method
+        if (!empty($productData['image']) && file_exists(public_path("images/products/{$productData['image']}"))) {
+            unlink(public_path("images/products/{$productData['image']}"));
         }
-
+    
+      
         $productRequest->delete();
-        
+    
         return redirect()->route('agent.products.approved')->with('success', 'Product request deleted successfully.');
     }
+    
 }

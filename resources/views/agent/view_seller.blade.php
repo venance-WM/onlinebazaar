@@ -8,16 +8,16 @@
             <div id="carouselControls" class="carousel slide carousel-fade d-md-none d-lg-none" data-ride="carousel">
                 <div class="carousel-inner">
                     <div class="carousel-item active">
-                        <img src="{{ asset($seller->sellerDetail->shop_image_one ? 'storage/' . $seller->sellerDetail->shop_image_one : 'app/placeholder-16-9.png') }}" class="d-block w-100 img-fluid"
-                            alt="Shop Image 1" style="height: 250px; object-fit: cover;">
+                        <img src="{{ $seller->sellerDetail->shop_image_one ? asset('images/shop_cover_images/' . $seller->sellerDetail->shop_image_one) : asset('app/placeholder-16-9.png') }}" 
+                            class="d-block w-100 img-fluid" alt="Shop Image 1" style="height: 250px; object-fit: cover;">
                     </div>
                     <div class="carousel-item">
-                        <img src="{{ asset($seller->sellerDetail->shop_image_two ? 'storage/' . $seller->sellerDetail->shop_image_two : 'app/placeholder-16-9.png') }}" class="d-block w-100 img-fluid"
-                            alt="Shop Image 2" style="height: 250px; object-fit: cover;">
+                        <img src="{{ $seller->sellerDetail->shop_image_two ? asset('images/shop_cover_images/' . $seller->sellerDetail->shop_image_two) : asset('app/placeholder-16-9.png') }}" 
+                            class="d-block w-100 img-fluid" alt="Shop Image 2" style="height: 250px; object-fit: cover;">
                     </div>
                     <div class="carousel-item">
-                        <img src="{{ asset($seller->sellerDetail->shop_image_three ? 'storage/' . $seller->sellerDetail->shop_image_three : 'app/placeholder-16-9.png') }}" class="d-block w-100 img-fluid"
-                            alt="Shop Image 3" style="height: 250px; object-fit: cover;">
+                        <img src="{{ $seller->sellerDetail->shop_image_three ? asset('images/shop_cover_images/' . $seller->sellerDetail->shop_image_three) : asset('app/placeholder-16-9.png') }}" 
+                            class="d-block w-100 img-fluid" alt="Shop Image 3" style="height: 250px; object-fit: cover;">
                     </div>
                 </div>
                 <a class="carousel-control-prev" href="#carouselControls" role="button" data-slide="prev">
@@ -29,21 +29,23 @@
                     <span class="sr-only">Next</span>
                 </a>
             </div>
-
+            
             <!-- Row of 3 images for Medium and Large Devices -->
             <div class="row no-gutters d-none d-md-flex d-lg-flex">
                 <div class="col-md-4">
-                    <img src="{{ asset($seller->sellerDetail->shop_image_one ? 'storage/' . $seller->sellerDetail->shop_image_one : 'app/placeholder-16-9.png') }}" class="img-fluid border border-dark"
-                        alt="Shop Image 1" style="height: 250px; object-fit: cover;">
+                    <img src="{{ $seller->sellerDetail->shop_image_one ? asset('images/shop_cover_images/' . $seller->sellerDetail->shop_image_one) : asset('app/placeholder-16-9.png') }}" 
+                        class="img-fluid border border-dark" alt="Shop Image 1" style="height: 250px; object-fit: cover;">
                 </div>
                 <div class="col-md-4">
-                    <img src="{{ asset($seller->sellerDetail->shop_image_two ? 'storage/' . $seller->sellerDetail->shop_image_two : 'app/placeholder-16-9.png') }}" class="img-fluid border border-dark"
-                        alt="Shop Image 2" style="height: 250px; object-fit: cover;">
+                    <img src="{{ $seller->sellerDetail->shop_image_two ? asset('images/shop_cover_images/' . $seller->sellerDetail->shop_image_two) : asset('app/placeholder-16-9.png') }}" 
+                        class="img-fluid border border-dark" alt="Shop Image 2" style="height: 250px; object-fit: cover;">
                 </div>
                 <div class="col-md-4">
-                    <img src="{{ asset($seller->sellerDetail->shop_image_three ? 'storage/' . $seller->sellerDetail->shop_image_three : 'app/placeholder-16-9.png') }}" class="img-fluid border border-dark"
-                        alt="Shop Image 3" style="height: 250px; object-fit: cover;">
+                    <img src="{{ $seller->sellerDetail->shop_image_three ? asset('images/shop_cover_images/' . $seller->sellerDetail->shop_image_three) : asset('app/placeholder-16-9.png') }}" 
+                        class="img-fluid border border-dark" alt="Shop Image 3" style="height: 250px; object-fit: cover;">
                 </div>
+            </div>
+            
             </div>
             <div class="row align-items-center">
                 <div class="col-lg-4 order-lg-1 order-2">
@@ -75,7 +77,7 @@
                                     style="width: 110px; height: 110px;">
                                     <div class="border border-4 border-white d-flex align-items-center justify-content-center rounded-circle overflow-hidden"
                                         style="width: 100px; height: 100px;">
-                                        <img src="{{ asset('storage/' . ($seller->profile_photo_path ?? 'user_profile_images/user.png')) }}"
+                                        <img src="{{ asset('images/user_profile_images/' . ($seller->profile_photo_path ?? 'user_profile_images/user.png')) }}"
                                             alt="" class="w-100 h-100">
                                     </div>
                                 </div>
@@ -195,7 +197,7 @@
                         @foreach ($products as $product)
                             <div class="col-md-3 col-6 mb-3">
                                 <div class="card h-100" style="min-height: 350px;">
-                                    <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top"
+                                    <img src="{{ asset('images/products/' . $product->image) }}" class="card-img-top"
                                         alt="{{ $product->name }}" style="height: 200px; object-fit: cover;">
                                     <div class="card-body d-flex flex-column">
                                         <h5 class="card-title">{{ $product->name }}</h5>
@@ -215,7 +217,7 @@
                         @foreach ($services as $service)
                             <div class="col-md-3 col-6 mb-3">
                                 <div class="card h-100" style="min-height: 350px;">
-                                    <img src="{{ asset('storage/' . $service->image) }}" class="card-img-top"
+                                    <img src="{{ asset('images/services/' . $service->image) }}" class="card-img-top"
                                         alt="{{ $service->name }}" style="height: 200px; object-fit: cover;">
                                     <div class="card-body d-flex flex-column">
                                         <h5 class="card-title">{{ $service->name }}</h5>

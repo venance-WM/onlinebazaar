@@ -31,7 +31,7 @@
                             <td>{{ $service->name }}</td>
                             <td>
                                 @if ($service->image)
-                                    <img src="{{ asset('storage/' . $service->image) }}" alt="{{ $service->name }}"
+                                    <img src="{{ asset('images/services/' . $service->image) }}" alt="{{ $service->name }}"
                                         width="50">
                                 @else
                                     No images of service
