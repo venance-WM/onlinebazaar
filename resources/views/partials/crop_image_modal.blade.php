@@ -1,5 +1,5 @@
 <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Crop Image Before Upload</h5>
@@ -8,7 +8,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="img-container">
+                <div class="img-containedr">
                     <div class="row">
                         <div class="col-md-8 col-12">
                             <img src="" id="image_to_crop" />
@@ -32,7 +32,7 @@
     <link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet" />
     {{-- <script src="https://unpkg.com/dropzone"></script> --}}
     <script src="https://unpkg.com/cropperjs"></script>
-    <style>
+    <style type="text/css">
         img {
             display: block;
             max-width: 100%;
@@ -46,8 +46,8 @@
             border: 1px solid red;
         }
 
-        .modal-md {
-            max-width: 800px !important;
+        .modal-lg {
+            max-width: 1000px !important;
         }
 
         #image_to_crop {
@@ -59,7 +59,7 @@
 @endpush
 
 @push('script')
-    <script>
+    <script defer>
         $(document).ready(function() {
             let $modal = $('#modal');
             let image = document.getElementById('image_to_crop');
@@ -89,7 +89,11 @@
                             cropper = new Cropper(image, {
                                 aspectRatio: aspectRatio,
                                 viewMode: 3,
-                                preview: '.preview'
+                                preview: '.preview',
+                                minContainerWidth: 350,
+                                minContainerHeight: 650,
+                                zoomable: true,
+                                scalable: true
                             });
 
                             // Set the current input

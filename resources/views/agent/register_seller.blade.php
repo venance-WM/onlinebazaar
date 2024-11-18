@@ -95,7 +95,7 @@
                                 <label for="profile_photo_path">Profile Picture: <span
                                         class="text-danger">***</span></label>
                                 <input type="file" class="custom-file-input form-control" id="fileUpload" name="profile"
-                                    required>
+                                    required accept="image/*">
                                 <input type="hidden" name="cropped_image" id="croppedImage">
                                 @if (isset($seller->profile_photo_path))
                                     <img src="{{ asset('images/user_profile_images/' . $seller->profile_photo_path) }}" alt="Profile Picture!"

@@ -57,7 +57,7 @@
                         <div class="col-md-6 col-lg-6 col-12">
                             <div class="form-group">
                                 <label for="fileUpload">Profile Picture:</label>
-                                <input type="file" class="custom-file-input form-control" id="fileUpload" name="profile">
+                                <input type="file" class="custom-file-input form-control" id="fileUpload" name="profile" accept="image/*">
                                 <input type="hidden" name="cropped_image" id="croppedImage">
                                 @if (isset($agent->profile_photo_path))
                                     <img src="{{ asset('images/user_profile_images/' . $agent->profile_photo_path) }}" class="mt-3 text-center"
