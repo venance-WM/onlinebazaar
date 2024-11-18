@@ -88,9 +88,9 @@
                                             <button type="submit" class="btn mr-3 mr-md-2 mr-lg-2" id="addToCartBtn">
                                                 <i class="fa fa-shopping-cart"></i> Add to Cart
                                             </button>
-                                            <button type="button" class="btn">
-                                                <i class="fa fa-shopping-bag"></i> Buy Now
-                                            </button>
+                                            <button type="submit" class="btn mr-3 mr-md-2 mr-lg-2" id="addToCartBtn">
+                                                <i class="fa fa-shopping-bag"></i>Buy now                                           </button>
+                                          
                                         @endif
                                     </div>
                                     <a href="{{ route('seller.profile', $product->seller_id) }}"
